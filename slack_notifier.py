@@ -2,11 +2,11 @@ import httplib, json
 import getopt, sys, os
 import subprocess
 
-def get_connection(organization):
-  return httplib.HTTPSConnection('%s.slack.com' % organization)
+def get_connection():
+  return httplib.HTTPSConnection('hooks.slack.com')
 
-def get_url(token):
-  return '/services/hooks/incoming-webhook?token=%s' % token
+def get_url(hook):
+  return '/%s' % hook
 
 def get_data_from_git(format_string, commit):
   return subprocess.check_output(['git', 'log', '-1', '--format=format:%s' % format_string, commit])
@@ -57,27 +57,24 @@ def post_message(connection, url, success, project):
 
 def main():
   try:
-    opts, args = getopt.getopt(sys.argv[1:], ':sf', ['project=', 'org=', 'token='])
+    opts, args = getopt.getopt(sys.argv[1:], ':sf', ['project=', 'hook='])
   except getopt.GetoptError as err:
     print str(err)
     sys.exit(2)
 
   success = False
   project = None
-  organization = None
-  token = None
+  hook = None
   for o, arg in opts:
     if o == '-s':
       success = True
     elif o == '--project':
       project = arg
-    elif o == '--org':
-      organization = arg
-    elif o == '--token':
-      token = arg
+    elif o == '--hook':
+      hook = arg
 
-  connection = get_connection(organization)
-  url = get_url(token)
+  connection = get_connection()
+  url = get_url(hook)
   post_message(connection, url, success, project)
 
 if __name__ == '__main__':
